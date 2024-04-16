@@ -1,119 +1,158 @@
-public class MyArrayList<T> {
-    private Object[] elements;
-    private int size;
-    private final int CAPACITY = 10;
-    
-    public MyArrayList() {
-        // create an array with an initial size of 10
-        elements = new Object[CAPACITY]; // initial capacity
-        size = 0; // keeps track of the number of elements 
-        // actually exist in our arraylist
-    }
-
-    public void AddStart(T elementToAdd) {
-        EnsureCapacity();
-        for (int i = size; i >= 0; i--) {
-            elements[i + 1] = elements[i];
-        }
-        elements[0] = elementToAdd;
-        size++;
-    }
-
-    public void AddEnd(T elementToAdd) {
-        EnsureCapacity();
-        elements[size] = elementToAdd;
-        size++;
-    }
-
-    public void AddAtIndex(T elementToAdd, int indexToAddAt) {
-        if (indexToAddAt > size || indexToAddAt < 0) {
-            // add to the end if the index the user wants to add at is invalid
-            AddEnd(elementToAdd);
-        } else {
-
-            EnsureCapacity();
-
-            for (int i = size; i >= indexToAddAt; i--) {
-                elements[i + 1] = elements[i];
-            }
-            elements[indexToAddAt] = elementToAdd;
-            size++;
-        }
-    }
+public class MyLinkedList<T> {
+    private Node<T> head = null, tail = null;
+    private int size = 0;
 
     /**
-     * 
-     * @param index
+     * Getter for the start or head of the list
      * @return
      */
-    public Object GetElementAtIndex(int index) {
-        if (index >= size || index < 0) {
-            return elements[size - 1];
-        }
-
-        return elements[index];
+    public Node<T> GetHead() {
+        return head;
     }
-    
+
     /**
-     * Checks the capacity of our elements array and
-     * increases its capacity if there isn't enough space
+     * Getter for the end or tail of the list
+     * @return
      */
-    private void EnsureCapacity() {
-        if (size == elements.length) {
-            // increase the capacity/size of the array
-            Object[] newElements = new Object[elements.length * 2];
+    public Node<T> GetTail() {
+        return tail;
+    }
 
-            for (int i = 0; i < size; i++) {
-                newElements[i] = elements[i];
-            }
-
-            elements = newElements;
+    public void AddFront(T data) {
+        Node<T> newNode = new Node<T>(data);
+        if (head == null) {
+            head = tail = newNode;
+        } else {
+            newNode.next = head;
+            head = newNode;
         }
+        size++;
     }
 
-    public void Print() {
-        for (int i = 0; i < size; i++) {
-            System.out.print(elements[i] + " ");
+    /**
+     * Adds a new node to the end of the LinkedList
+     */
+    public void Append(T data) {
+
+        if (head == null) {
+            // Node<T> newNode = new Node<T>(data); // create the new node and ensure it's next is null
+            // size++;
+            // head = newNode;
+            AddFront(data);
+            return;
         }
 
-        System.out.println();
-    }
+        // Node<T> currentNode = head;
 
-    public void DeleteAtStart() {
-        DeleteAtIndex(0);
-    }
+        // while (currentNode.next != null) {
+        //     currentNode = currentNode.next;
+        // }
 
-    public void DeleteAtEnd() {
-        DeleteAtIndex(size - 1);
+        // once we have our current last node
+        Node<T> newNode = new Node<T>(data); // create the new node and ensure it's next is null
+        tail.next = newNode; // set the next of the old last node equal to the new node
+        tail = newNode;
+        size++;
     }
     
+    // 1
+    public void Insert(int index, T data) {
 
-    public void DeleteAtIndex(int indexOfValueToDelete) {
-        if (indexOfValueToDelete < 0 || indexOfValueToDelete >= size) {
-            throw new IndexOutOfBoundsException(
-                    "Index " + indexOfValueToDelete + "is invalid for ArrayList of size " + size);
+        // we know they are asking to insert at the last element
+        if (index == size) {
+            Append(data);
         }
 
-        for (int i = indexOfValueToDelete; i < size; i++) {
-            elements[i] = elements[i + 1];
+        if (index < 0 || index > size - 1) {
+            return;
+        }
+
+        Node<T> currentNode = head;
+
+        // go to the element prior to where we want to insert our element
+        for (int i = 0; i < index - 1; i++) {
+            currentNode = currentNode.next;
+        }
+        
+        Node<T> newNode = new Node<T>(data, currentNode.next);
+        currentNode.next = newNode;
+
+    }
+
+    @Override
+    public String toString() {
+        Node<T> currentNode = head;
+        String returnString = "";
+
+        while (currentNode != null) {
+            returnString += " " + currentNode.data.toString();
+            currentNode = currentNode.next;
+        }
+
+        return returnString;
+    }
+
+    public void DeleteFront() {
+
+        if (head == tail) {
+            tail = null;
+        }
+
+        head = head.next;
+        size--;
+    }
+    
+    public void DeleteBack() {
+        Node<T> currentNode = head;
+
+        while (currentNode.next.next != null) {
+            currentNode = currentNode.next;
+        }
+        //System.out.println(currentNode.data);
+        currentNode.next = null;
+        tail = currentNode;
+        size--;
+    }
+
+    /**
+     * This will find the first instance of matching data and delete it
+     * @param data the data of type T whose node we want to delete
+     */
+    public void DeleteNodeBasedOnValue(T data) {
+        
+        if (head == null) {
+            return;
+        }
+        
+        Node<T> currentNode = head;
+
+        if (currentNode.data == data) {
+            DeleteFront();
+            return;
+        }
+
+        if (currentNode.next == null)
+            return;
+
+        while (currentNode.next.data != data) {
+            currentNode = currentNode.next;
+            if (currentNode.next == null)
+                return;
+        }
+        
+        //System.out.println(currentNode.data);
+        currentNode.next = currentNode.next.next;
+        if (currentNode.next == null) {
+            tail = currentNode;
         }
         size--;
     }
     
-    public void ClearAll() {
-        for (int i = 0; i < size; i++) {
-            elements[i] = null;
-        }
-        size = 0;
-    }
-
-    public boolean IsEmpty() {
-        return size == 0;
-    }
-
-    public int Size() {
+    public int GetSize() {
         return size;
     }
 
-
+    public boolean isEmpty() {
+        return head == null;
+    }
 }
